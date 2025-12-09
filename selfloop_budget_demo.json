@@ -1,0 +1,154 @@
+{
+  "description": "Demonstration of a SelfLoop mission for a simple budget relief scenario (Budget → Worker → Plan → Finish).",
+  "steps": [
+    {
+      "kind": "selfloop_decision",
+      "iteration": 1,
+      "llm_response": {
+        "decision": {
+          "action_type": "explore",
+          "reasoning": "I need to understand the user's monthly income and main cost categories.",
+          "next_step": "Ask the user to provide approximate monthly income and the three biggest recurring expenses.",
+          "worker_action": null
+        },
+        "actions": [],
+        "explanation": "Start by clarifying the basic budget frame."
+      }
+    },
+    {
+      "kind": "selfloop_decision",
+      "iteration": 2,
+      "llm_response": {
+        "decision": {
+          "action_type": "worker_action",
+          "reasoning": "Now that the income and costs are known, a simple budget snapshot is useful.",
+          "next_step": "Call the budgeting worker to compute totals and remaining amount.",
+          "worker_action": {
+            "tool_name": "compute_simple_budget",
+            "arguments": {
+              "currency": "EUR",
+              "monthly_income": 1800,
+              "fixed_costs": [
+                {
+                  "label": "Rent",
+                  "amount": 800
+                },
+                {
+                  "label": "Health insurance",
+                  "amount": 220
+                }
+              ],
+              "variable_costs": [
+                {
+                  "label": "Groceries",
+                  "amount": 250
+                },
+                {
+                  "label": "Transport",
+                  "amount": 80
+                }
+              ]
+            }
+          }
+        },
+        "actions": [],
+        "explanation": "Delegate the numeric analysis to a worker."
+      }
+    },
+    {
+      "kind": "worker_result",
+      "worker_action": "compute_simple_budget",
+      "result": {
+        "currency": "EUR",
+        "total_income": 1800,
+        "total_fixed_costs": 1020,
+        "total_variable_costs": 330,
+        "remaining": 450,
+        "stress_level": "medium",
+        "top_cost_drivers": [
+          "Rent",
+          "Health insurance"
+        ]
+      }
+    },
+    {
+      "kind": "selfloop_decision",
+      "iteration": 3,
+      "llm_response": {
+        "decision": {
+          "action_type": "worker_action",
+          "reasoning": "Based on the budget snapshot, propose a few low-risk cost reductions.",
+          "next_step": "Call the cost reduction worker with the budget snapshot.",
+          "worker_action": {
+            "tool_name": "generate_cost_reduction_ideas",
+            "arguments": {
+              "budget_snapshot": {
+                "currency": "EUR",
+                "total_income": 1800,
+                "total_fixed_costs": 1020,
+                "total_variable_costs": 330,
+                "remaining": 450,
+                "stress_level": "medium",
+                "top_cost_drivers": [
+                  "Rent",
+                  "Health insurance"
+                ]
+              },
+              "max_suggestions": 3
+            }
+          }
+        },
+        "actions": [],
+        "explanation": "Use a dedicated worker to generate suggestions."
+      }
+    },
+    {
+      "kind": "worker_result",
+      "worker_action": "generate_cost_reduction_ideas",
+      "result": {
+        "suggestions": [
+          {
+            "label": "Groceries",
+            "type": "soft_reduction",
+            "description": "Plan weekly meals and compare prices between a few nearby stores.",
+            "estimated_saving_per_month": 20
+          },
+          {
+            "label": "Subscriptions",
+            "type": "cancel_unused",
+            "description": "List all digital subscriptions and cancel anything unused.",
+            "estimated_saving_per_month": 15
+          }
+        ]
+      }
+    },
+    {
+      "kind": "selfloop_decision",
+      "iteration": 4,
+      "llm_response": {
+        "decision": {
+          "action_type": "plan_step",
+          "reasoning": "The worker results are available; a compact plan will help the user act.",
+          "next_step": "Summarize a 2–3 step plan the user can realistically follow over the next month.",
+          "worker_action": null
+        },
+        "actions": [],
+        "explanation": "Plan-level reasoning without further worker calls."
+      }
+    },
+    {
+      "kind": "selfloop_decision",
+      "iteration": 5,
+      "llm_response": {
+        "decision": {
+          "action_type": "finish",
+          "reasoning": "The user now has an overview and a realistic short plan.",
+          "next_step": "End the mission and wait for feedback or new input.",
+          "worker_action": null
+        },
+        "actions": [],
+        "explanation": "The SelfLoop terminates cleanly."
+      }
+    }
+  ]
+}
