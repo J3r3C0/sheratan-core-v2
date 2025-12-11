@@ -49,13 +49,17 @@ def parse_json_strict(text: str) -> Dict[str, Any]:
 def validate_decision(decision: Any) -> None:
     if not isinstance(decision, dict):
         raise LCPValidationError("`decision` must be an object.")
-    if "kind" not in decision:
-        raise LCPValidationError("`decision.kind` is required.")
-    if not isinstance(decision["kind"], str):
-        raise LCPValidationError("`decision.kind` must be a string.")
-    if not decision["kind"]:
-        raise LCPValidationError("`decision.kind` must not be empty.")
-
+    # Allow legacy `kind` or newer `action_type` as the decision type field.
+    if "kind" in decision:
+        kind = decision["kind"]
+    elif "action_type" in decision:
+        kind = decision["action_type"]
+    else:
+        raise LCPValidationError("Either `decision.kind` or `decision.action_type` is required.")
+    if not isinstance(kind, str):
+        raise LCPValidationError("Decision type must be a string.")
+    if not kind:
+        raise LCPValidationError("Decision type must not be empty.")
 
 def validate_action(action: Any) -> None:
     if not isinstance(action, dict):
